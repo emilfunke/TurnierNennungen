@@ -1,0 +1,200 @@
+// Startplatz-Börse data model.
+// v1 has no User table: contact details live on each Offer/Request.
+// When accounts arrive, these fields move to a User relation.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OfferStatus {
+  ACTIVE
+  RESERVED
+  GIVEN_AWAY
+  EXPIRED
+}
+
+enum RequestStatus {
+  OPEN
+  CLOSED
+}
+
+enum ContactMethod {
+  PHONE
+  WHATSAPP
+  EMAIL
+}
+
+enum EventSource {
+  ADMIN
+  USER
+  IMPORT
+}
+
+// ---------------------------------------------------------------------------
+// Location hierarchy: Region > Canton > City > Venue
+// ---------------------------------------------------------------------------
+
+model Region {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  sortOrder Int      @default(0)
+  cantons   Canton[]
+}
+
+model Canton {
+  id        String    @id @default(cuid())
+  code      String    @unique // e.g. "CH-BE"
+  name      String
+  sortOrder Int       @default(0)
+  regionId  String
+  region    Region    @relation(fields: [regionId], references: [id])
+  cities    City[]
+  events    Event[]
+  requests  Request[]
+
+  @@index([regionId])
+}
+
+model City {
+  id       String  @id @default(cuid())
+  name     String
+  cantonId String
+  canton   Canton  @relation(fields: [cantonId], references: [id])
+  venues   Venue[]
+  events   Event[]
+
+  @@unique([cantonId, name])
+  @@index([cantonId])
+}
+
+model Venue {
+  id     String @id @default(cuid())
+  name   String
+  cityId String
+  city   City   @relation(fields: [cityId], references: [id])
+  events Event[]
+
+  @@unique([cityId, name])
+  @@index([cityId])
+}
+
+// ---------------------------------------------------------------------------
+// Taxonomy: Discipline > DifficultyClass (admin-editable data)
+// ---------------------------------------------------------------------------
+
+model Discipline {
+  id        String            @id @default(cuid())
+  slug      String            @unique
+  name      String
+  sortOrder Int               @default(0)
+  active    Boolean           @default(true)
+  classes   DifficultyClass[]
+  events    Event[]
+  offers    Offer[]
+  requests  Request[]
+}
+
+model DifficultyClass {
+  id           String     @id @default(cuid())
+  disciplineId String
+  discipline   Discipline @relation(fields: [disciplineId], references: [id])
+  slug         String
+  name         String
+  sortOrder    Int        @default(0)
+  notes        String?
+  offers       Offer[]
+  requests     Request[]
+
+  @@unique([disciplineId, slug])
+  @@index([disciplineId])
+}
+
+// ---------------------------------------------------------------------------
+// Event
+// ---------------------------------------------------------------------------
+
+model Event {
+  id          String       @id @default(cuid())
+  name        String
+  dateFrom    DateTime
+  dateTo      DateTime?
+  organiser   String?
+  source      EventSource  @default(USER)
+  externalId  String?
+  cantonId    String
+  canton      Canton       @relation(fields: [cantonId], references: [id])
+  cityId      String?
+  city        City?        @relation(fields: [cityId], references: [id])
+  venueId     String?
+  venue       Venue?       @relation(fields: [venueId], references: [id])
+  disciplines Discipline[]
+  offers      Offer[]
+  createdAt   DateTime     @default(now())
+
+  @@index([dateFrom])
+  @@index([cantonId])
+}
+
+// ---------------------------------------------------------------------------
+// Offer ("Biete": give away an entry)
+// ---------------------------------------------------------------------------
+
+model Offer {
+  id                String          @id @default(cuid())
+  eventId           String
+  event             Event           @relation(fields: [eventId], references: [id])
+  disciplineId      String
+  discipline        Discipline      @relation(fields: [disciplineId], references: [id])
+  difficultyClassId String
+  difficultyClass   DifficultyClass @relation(fields: [difficultyClassId], references: [id])
+  priceCents        Int
+  originalFeeCents  Int?
+  note              String?
+  status            OfferStatus     @default(ACTIVE)
+  expiresAt         DateTime
+  contactName       String
+  contactMethod     ContactMethod
+  contactPhone      String?
+  contactWhatsapp   String?
+  contactEmail      String?
+  createdAt         DateTime        @default(now())
+
+  @@index([status])
+  @@index([eventId])
+  @@index([disciplineId])
+}
+
+// ---------------------------------------------------------------------------
+// Request ("Gesuch": looking for an entry). UI arrives in M4.
+// At least one of date or location must be provided (enforced in app code).
+// ---------------------------------------------------------------------------
+
+model Request {
+  id                String           @id @default(cuid())
+  disciplineId      String?
+  discipline        Discipline?      @relation(fields: [disciplineId], references: [id])
+  difficultyClassId String?
+  difficultyClass   DifficultyClass? @relation(fields: [difficultyClassId], references: [id])
+  dateFrom          DateTime?
+  dateTo            DateTime?
+  cantonId          String?
+  canton            Canton?          @relation(fields: [cantonId], references: [id])
+  priceMinCents     Int?
+  priceMaxCents     Int?
+  note              String?
+  status            RequestStatus    @default(OPEN)
+  contactName       String
+  contactMethod     ContactMethod
+  contactPhone      String?
+  contactWhatsapp   String?
+  contactEmail      String?
+  createdAt         DateTime         @default(now())
+
+  @@index([status])
+}
