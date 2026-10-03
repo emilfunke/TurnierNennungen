@@ -2,8 +2,12 @@ import { prisma } from "@/lib/db";
 import { toDateInputValue } from "@/lib/format";
 import type {
   CantonOption,
+  CityOption,
   DisciplineOption,
   EventOption,
+  OfferListItem,
+  RegionOption,
+  VenueOption,
 } from "./types";
 
 /**
@@ -71,9 +75,33 @@ export async function getEventOptions(): Promise<EventOption[]> {
   }));
 }
 
-/** Active offers with everything the list view needs, newest event first. */
-export async function listActiveOffers() {
-  return prisma.offer.findMany({
+export async function getRegionOptions(): Promise<RegionOption[]> {
+  const regions = await prisma.region.findMany({ orderBy: { sortOrder: "asc" } });
+  return regions.map((region) => ({ id: region.id, name: region.name }));
+}
+
+export async function getCityOptions(): Promise<CityOption[]> {
+  const cities = await prisma.city.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, cantonId: true },
+  });
+  return cities;
+}
+
+export async function getVenueOptions(): Promise<VenueOption[]> {
+  const venues = await prisma.venue.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, cityId: true },
+  });
+  return venues;
+}
+
+/**
+ * Active offers mapped to serializable list items, soonest event first.
+ * Filtering happens in the browser against this list, so no DB query per filter.
+ */
+export async function getOfferListItems(): Promise<OfferListItem[]> {
+  const offers = await prisma.offer.findMany({
     where: { status: "ACTIVE" },
     orderBy: { expiresAt: "asc" },
     include: {
@@ -84,6 +112,29 @@ export async function listActiveOffers() {
       },
     },
   });
+
+  return offers.map((offer) => ({
+    id: offer.id,
+    eventName: offer.event.name,
+    dateFrom: offer.event.dateFrom,
+    dateTo: offer.event.dateTo,
+    locationLabel: [
+      offer.event.venue?.name,
+      offer.event.city?.name,
+      offer.event.canton.name,
+    ]
+      .filter(Boolean)
+      .join(", "),
+    disciplineId: offer.disciplineId,
+    disciplineName: offer.discipline.name,
+    difficultyClassId: offer.difficultyClassId,
+    difficultyClassName: offer.difficultyClass.name,
+    priceCents: offer.priceCents,
+    regionId: offer.event.canton.regionId,
+    cantonId: offer.event.cantonId,
+    cityId: offer.event.cityId,
+    venueId: offer.event.venueId,
+  }));
 }
 
 export async function getOfferById(id: string) {

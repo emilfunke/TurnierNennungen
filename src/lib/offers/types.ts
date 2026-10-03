@@ -51,3 +51,41 @@ export type ContactDetails = {
   whatsapp?: string;
   email?: string;
 };
+
+export type RegionOption = {
+  id: string;
+  name: string;
+};
+
+export type CityOption = {
+  id: string;
+  name: string;
+  cantonId: string;
+};
+
+export type VenueOption = {
+  id: string;
+  name: string;
+  cityId: string;
+};
+
+/**
+ * Everything the offer list and its filter need. All fields are serializable so
+ * the list can be filtered in the browser without a server round-trip.
+ */
+export type OfferListItem = {
+  id: string;
+  eventName: string;
+  dateFrom: Date;
+  dateTo: Date | null;
+  locationLabel: string;
+  disciplineId: string;
+  disciplineName: string;
+  difficultyClassId: string;
+  difficultyClassName: string;
+  priceCents: number;
+  regionId: string;
+  cantonId: string;
+  cityId: string | null;
+  venueId: string | null;
+};

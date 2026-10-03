@@ -9,11 +9,12 @@ function offer(overrides: Partial<FilterableOffer> = {}): FilterableOffer {
     disciplineId: "springen",
     difficultyClassId: "b",
     priceCents: 8000,
-    status: "ACTIVE",
     dateFrom: day("2026-06-14"),
     dateTo: null,
     cantonId: "be",
     regionId: "mittelland",
+    cityId: "bern",
+    venueId: null,
     ...overrides,
   };
 }
@@ -35,6 +36,16 @@ describe("matchesOfferFilter", () => {
     expect(matchesOfferFilter(offer(), { cantonId: "zh" })).toBe(false);
     expect(matchesOfferFilter(offer(), { regionId: "mittelland" })).toBe(true);
     expect(matchesOfferFilter(offer(), { regionId: "zuerich" })).toBe(false);
+  });
+
+  it("filters by city and venue (finer levels)", () => {
+    const withVenue = offer({ venueId: "pdz", cityId: "bern" });
+    expect(matchesOfferFilter(withVenue, { cityId: "bern" })).toBe(true);
+    expect(matchesOfferFilter(withVenue, { cityId: "thun" })).toBe(false);
+    expect(matchesOfferFilter(withVenue, { venueId: "pdz" })).toBe(true);
+    expect(matchesOfferFilter(withVenue, { venueId: "other" })).toBe(false);
+    // An offer without a venue never matches a venue filter.
+    expect(matchesOfferFilter(offer(), { venueId: "pdz" })).toBe(false);
   });
 
   it("filters by price range", () => {

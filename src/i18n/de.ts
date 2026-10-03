@@ -129,8 +129,25 @@ export const de = {
   suche: {
     title: "Startplatz suchen",
     intro:
-      "Durchsuche verfügbare Startplätze. Filter und Kalenderansicht folgen in Kürze.",
+      "Filtere verfügbare Startplätze nach Disziplin, Klasse, Ort und Zeitraum.",
     resultCount: "Angebote gefunden",
+  },
+  filter: {
+    title: "Filter",
+    discipline: "Disziplin",
+    allDisciplines: "Alle Disziplinen",
+    difficulty: "Klasse",
+    allClasses: "Alle Klassen",
+    location: "Ort",
+    allLocations: "Ganze Schweiz",
+    groupRegions: "Regionen",
+    groupCantons: "Kantone",
+    groupCities: "Städte",
+    groupVenues: "Anlagen",
+    dateFrom: "Datum von",
+    dateTo: "Datum bis",
+    reset: "Filter zurücksetzen",
+    noResults: "Keine Angebote entsprechen deinen Filtern.",
   },
   errors: {
     generic: "Es ist ein Fehler aufgetreten. Bitte versuche es erneut.",

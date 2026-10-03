@@ -52,7 +52,15 @@ questions are still asked before implementation.
 
 ### Filtering
 - `matchesOfferFilter` (`src/lib/offers/filter.ts`) is a pure, DB-free predicate with
-  unit tests. The list/calendar UI and DB query wiring land in M3.
+  unit tests. It filters by discipline, class, date range and location at every
+  level (region, canton, city, venue).
+- The `/suche` filter bar (`src/app/suche/OfferExplorer.tsx`) is a client component:
+  it filters the already-loaded active offers in the browser for instant feedback
+  and no server round-trip, reusing the same tested predicate. Trade-off: filter
+  state is not in the URL yet, so filtered views are not shareable/bookmarkable.
+- The location select always lists regions and cantons, and only lists cities and
+  venues that actually occur in the current offers, to keep it short.
+- The calendar view is not built yet.
 
 ### Expiry
 - `Offer.expiresAt` is set to the event date. Automatically flipping expired offers

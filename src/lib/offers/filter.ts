@@ -10,27 +10,31 @@ export type OfferFilter = {
   difficultyClassId?: string;
   dateFrom?: Date;
   dateTo?: Date;
-  cantonId?: string;
   regionId?: string;
+  cantonId?: string;
+  cityId?: string;
+  venueId?: string;
   priceMinCents?: number;
   priceMaxCents?: number;
 };
 
 /**
  * The subset of an offer needed to evaluate a filter. An offer's date and
- * canton come from its event; region is derived from the canton.
+ * location come from its event; region is derived from the canton and city and
+ * venue from the event's location.
  */
 export type FilterableOffer = {
   disciplineId: string;
   difficultyClassId: string;
   priceCents: number;
-  status: string;
   /** Inclusive start of the offer's date range. */
   dateFrom: Date;
   /** Inclusive end of the offer's date range, or null when it is a single day. */
   dateTo: Date | null;
-  cantonId: string;
   regionId: string;
+  cantonId: string;
+  cityId: string | null;
+  venueId: string | null;
 };
 
 /**
@@ -64,6 +68,12 @@ export function matchesOfferFilter(
   }
 
   if (filter.cantonId && offer.cantonId !== filter.cantonId) {
+    return false;
+  }
+  if (filter.cityId && offer.cityId !== filter.cityId) {
+    return false;
+  }
+  if (filter.venueId && offer.venueId !== filter.venueId) {
     return false;
   }
   if (filter.regionId && offer.regionId !== filter.regionId) {
