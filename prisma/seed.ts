@@ -119,7 +119,9 @@ const VENUES: Record<string, string[]> = {
 
 // ---------------------------------------------------------------------------
 // Disciplines and their ordered classes.
-// Every class line is marked TO BE VERIFIED.
+// Every class is marked TO BE VERIFIED against current Swiss Equestrian
+// regulations. This is plain data: edit the lists below and re-run
+// `npm run db:seed` to update the dropdowns in the app.
 // ---------------------------------------------------------------------------
 type ClassSeed = { slug: string; name: string; notes?: string };
 type DisciplineSeed = {
@@ -128,28 +130,54 @@ type DisciplineSeed = {
   classes: ClassSeed[];
 };
 
+/**
+ * Builds graded classes such as Springen "B80" from a level prefix and a list
+ * of values (jump heights in cm, or dressage test numbers).
+ *
+ * @example gradedClasses([{ prefix: "B", values: ["60", "65"] }], "TO BE VERIFIED")
+ *   -> B60, B65
+ */
+function gradedClasses(
+  grades: { prefix: string; values: string[] }[],
+  notes: string,
+): ClassSeed[] {
+  return grades.flatMap(({ prefix, values }) =>
+    values.map((value) => ({
+      slug: `${prefix.toLowerCase()}${value}`,
+      name: `${prefix}${value}`,
+      notes,
+    })),
+  );
+}
+
 const DISCIPLINES: DisciplineSeed[] = [
   {
     slug: "springen",
     name: "Springen",
-    classes: [
-      { slug: "e", name: "E (Einführung)", notes: "TO BE VERIFIED: ca. 60–80 cm" },
-      { slug: "b", name: "B (Basis)", notes: "TO BE VERIFIED: ca. 80–100 cm" },
-      { slug: "r", name: "R (Region)", notes: "TO BE VERIFIED: ca. 100–115 cm" },
-      { slug: "n", name: "N (National)", notes: "TO BE VERIFIED: ca. 115–130 cm" },
-      { slug: "s", name: "S (Spitze)", notes: "TO BE VERIFIED: ab ca. 130 cm" },
-    ],
+    classes: gradedClasses(
+      [
+        { prefix: "E", values: ["60", "70", "80"] },
+        { prefix: "B", values: ["60", "65", "70", "75", "80", "85", "90", "95", "100"] },
+        { prefix: "R", values: ["100", "105", "110", "115"] },
+        { prefix: "N", values: ["115", "120", "125", "130"] },
+        { prefix: "S", values: ["130", "135", "140", "145", "150"] },
+      ],
+      "TO BE VERIFIED (Höhe in cm)",
+    ),
   },
   {
     slug: "dressur",
     name: "Dressur",
-    classes: [
-      { slug: "e", name: "E", notes: "TO BE VERIFIED" },
-      { slug: "a", name: "A", notes: "TO BE VERIFIED" },
-      { slug: "l", name: "L", notes: "TO BE VERIFIED" },
-      { slug: "m", name: "M", notes: "TO BE VERIFIED" },
-      { slug: "s", name: "S", notes: "TO BE VERIFIED" },
-    ],
+    classes: gradedClasses(
+      [
+        { prefix: "E", values: ["1", "2", "3"] },
+        { prefix: "A", values: ["1", "2", "3", "4", "5"] },
+        { prefix: "L", values: ["1", "2", "3", "4", "5"] },
+        { prefix: "M", values: ["1", "2", "3", "4", "5"] },
+        { prefix: "S", values: ["1", "2", "3"] },
+      ],
+      "TO BE VERIFIED (Aufgabennummer)",
+    ),
   },
   {
     slug: "vielseitigkeit",
@@ -160,18 +188,25 @@ const DISCIPLINES: DisciplineSeed[] = [
       { slug: "l", name: "L", notes: "TO BE VERIFIED" },
       { slug: "m", name: "M", notes: "TO BE VERIFIED" },
       { slug: "s", name: "S", notes: "TO BE VERIFIED" },
+      { slug: "1star", name: "1*", notes: "TO BE VERIFIED (international)" },
+      { slug: "2star", name: "2*", notes: "TO BE VERIFIED (international)" },
+      { slug: "3star", name: "3*", notes: "TO BE VERIFIED (international)" },
+      { slug: "4star", name: "4*", notes: "TO BE VERIFIED (international)" },
     ],
   },
   {
     slug: "cross",
     name: "Cross",
-    classes: [
-      { slug: "e", name: "E", notes: "TO BE VERIFIED" },
-      { slug: "a", name: "A", notes: "TO BE VERIFIED" },
-      { slug: "l", name: "L", notes: "TO BE VERIFIED" },
-      { slug: "m", name: "M", notes: "TO BE VERIFIED" },
-      { slug: "s", name: "S", notes: "TO BE VERIFIED" },
-    ],
+    classes: gradedClasses(
+      [
+        { prefix: "E", values: ["80"] },
+        { prefix: "B", values: ["80", "90", "100"] },
+        { prefix: "R", values: ["100", "110"] },
+        { prefix: "N", values: ["110", "120"] },
+        { prefix: "S", values: ["120", "130"] },
+      ],
+      "TO BE VERIFIED (Höhe in cm)",
+    ),
   },
   {
     slug: "fahren",
@@ -190,7 +225,12 @@ const DISCIPLINES: DisciplineSeed[] = [
     classes: [
       { slug: "beginner", name: "Beginner", notes: "TO BE VERIFIED" },
       { slug: "rookie", name: "Rookie", notes: "TO BE VERIFIED" },
+      { slug: "youth", name: "Youth", notes: "TO BE VERIFIED" },
+      { slug: "limited-non-pro", name: "Limited Non Pro", notes: "TO BE VERIFIED" },
+      { slug: "intermediate-non-pro", name: "Intermediate Non Pro", notes: "TO BE VERIFIED" },
       { slug: "non-pro", name: "Non Pro", notes: "TO BE VERIFIED" },
+      { slug: "limited-open", name: "Limited Open", notes: "TO BE VERIFIED" },
+      { slug: "intermediate-open", name: "Intermediate Open", notes: "TO BE VERIFIED" },
       { slug: "open", name: "Open", notes: "TO BE VERIFIED" },
     ],
   },
@@ -203,6 +243,9 @@ const DISCIPLINES: DisciplineSeed[] = [
       { slug: "80", name: "80 km", notes: "TO BE VERIFIED" },
       { slug: "100", name: "100 km", notes: "TO BE VERIFIED" },
       { slug: "120", name: "120 km", notes: "TO BE VERIFIED" },
+      { slug: "cei1", name: "CEI 1*", notes: "TO BE VERIFIED (international)" },
+      { slug: "cei2", name: "CEI 2*", notes: "TO BE VERIFIED (international)" },
+      { slug: "cei3", name: "CEI 3*", notes: "TO BE VERIFIED (international)" },
     ],
   },
   {
@@ -405,7 +448,7 @@ async function main(): Promise<void> {
     {
       event: "Regionales Springturnier Aarau",
       discipline: "springen",
-      cls: "b",
+      cls: "b80",
       priceCents: 8000,
       originalFeeCents: 8000,
       note: "Pferd ist gesund, ich kann wegen Umzug nicht starten.",
@@ -416,10 +459,10 @@ async function main(): Promise<void> {
     {
       event: "CSI Zürich",
       discipline: "springen",
-      cls: "r",
+      cls: "r110",
       priceCents: 15000,
       originalFeeCents: 14000,
-      note: "Startplatz in einer R-Prüfung.",
+      note: "Startplatz in einer R110-Prüfung.",
       contactName: "Beat Beispiel",
       contactMethod: ContactMethod.WHATSAPP,
       contactWhatsapp: "+41 78 987 65 43",
@@ -427,7 +470,7 @@ async function main(): Promise<void> {
     {
       event: "CDI Dressur Bern",
       discipline: "dressur",
-      cls: "a",
+      cls: "a3",
       priceCents: 6500,
       originalFeeCents: 6500,
       contactName: "Claudia Demo",
@@ -437,7 +480,7 @@ async function main(): Promise<void> {
     {
       event: "Vielseitigkeitsturnier Thun",
       discipline: "cross",
-      cls: "l",
+      cls: "b90",
       priceCents: 9000,
       originalFeeCents: 9000,
       note: "Nur der Geländeritt, Dressur und Springen bereits vergeben.",

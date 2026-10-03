@@ -39,6 +39,17 @@ questions are still asked before implementation.
 - Asking above the original fee only **warns**, gated by `WARN_PRICE_ABOVE_ORIGINAL`
   (soft nudge, never a hard rule).
 
+### Taxonomy granularity
+- Difficulty classes are **graded** wherever the real exam is graded: Springen and
+  Cross by jump height (`B80`), Dressur by test number (`A3`), Reining by division,
+  Distanzreiten by distance/CEI star, Vielseitigkeit by level plus international
+  stars. Fahren and Voltige keep the E–S level scale, which is their full
+  granularity.
+- The grade lives in the class **name**; there is **no separate height field**. The
+  height is inferred from the selected class, which is simpler for users.
+- All of this is plain data in `prisma/seed.ts`; edit the lists there and re-run
+  `npm run db:seed`. No form code changes are needed.
+
 ### Filtering
 - `matchesOfferFilter` (`src/lib/offers/filter.ts`) is a pure, DB-free predicate with
   unit tests. The list/calendar UI and DB query wiring land in M3.
